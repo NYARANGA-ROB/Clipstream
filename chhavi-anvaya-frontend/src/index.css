@@ -1,0 +1,88 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --bg: #050509;
+  --bg-elevated: #12121a;
+  --bg-card: #181824;
+  --line: rgba(255, 255, 255, 0.08);
+  --text: #f4f4f7;
+  --muted: #9b9bb0;
+  --accent: #fe2c55;
+  --accent-2: #25f4ee;
+  --accent-hover: #ff4d70;
+  --danger: #ff5c7a;
+  --star: #ffd166;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: radial-gradient(circle at top right, #1b1024 0%, var(--bg) 42%);
+  color: var(--text);
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+input,
+select,
+textarea {
+  background: #0e0e16;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  width: 100%;
+  font-size: 1.5rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent-2);
+  border-color: transparent;
+}
+
+button {
+  background: linear-gradient(90deg, var(--accent), #ff6a8a);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 1.1rem 1.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+
+.error-message {
+  color: var(--danger);
+  font-size: 1.2rem;
+  margin-top: 0.4rem;
+}

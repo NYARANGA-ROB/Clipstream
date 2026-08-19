@@ -1,0 +1,123 @@
+.sideNavBar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 24rem;
+  padding: 2.4rem 1.6rem;
+  background: rgba(8, 8, 14, 0.92);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  z-index: 20;
+  backdrop-filter: blur(16px);
+}
+
+.brand {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+
+.mark {
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+}
+
+.brand h1 {
+  font-size: 2.2rem;
+  letter-spacing: -0.04em;
+}
+
+.brand p {
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+
+.sideNavBar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.sideNavBar nav a {
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 14px;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.sideNavBar nav a:hover,
+.active {
+  background: rgba(254, 44, 85, 0.14);
+  color: white;
+}
+
+.account {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem;
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.account strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.account span {
+  color: var(--muted);
+  font-size: 1.2rem;
+  text-transform: capitalize;
+}
+
+.account button {
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  background: #2a2a38;
+}
+
+@media (max-width: 900px) {
+  .sideNavBar {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border-right: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .brand p,
+  .account span,
+  .account strong {
+    display: none;
+  }
+
+  .sideNavBar nav {
+    flex-direction: row;
+    flex: 1;
+    justify-content: space-around;
+  }
+
+  .sideNavBar nav a span,
+  .sideNavBar nav a {
+    font-size: 0;
+    gap: 0;
+    padding: 1rem;
+  }
+
+  .sideNavBar nav a svg {
+    font-size: 2rem;
+  }
+}

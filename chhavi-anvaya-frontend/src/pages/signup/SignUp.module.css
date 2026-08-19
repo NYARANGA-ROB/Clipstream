@@ -1,0 +1,44 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.panel {
+  width: min(46rem, 100%);
+  background: rgba(18, 18, 26, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 3.2rem;
+}
+
+.kicker {
+  color: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+}
+
+.panel h1 {
+  font-size: 3.2rem;
+  margin: 0.8rem 0 1rem;
+}
+
+.lead,
+.redirect {
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+
+.panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.redirect {
+  margin-top: 1.6rem;
+}

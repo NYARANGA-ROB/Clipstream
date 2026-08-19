@@ -1,0 +1,29 @@
+.header h2 {
+  font-size: 3.6rem;
+  margin-bottom: 1.6rem;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2.4rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1.8rem;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 1.6rem;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

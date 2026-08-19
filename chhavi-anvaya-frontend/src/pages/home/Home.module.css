@@ -1,0 +1,35 @@
+.home {
+  max-width: 120rem;
+}
+
+.hero {
+  margin-bottom: 2.4rem;
+}
+
+.hero p {
+  color: var(--accent-2);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hero h2 {
+  font-size: 4.2rem;
+  letter-spacing: -0.05em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1.8rem;
+}
+
+.empty {
+  padding: 6rem 2rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.8rem;
+  background: var(--bg-card);
+  border-radius: 20px;
+}
