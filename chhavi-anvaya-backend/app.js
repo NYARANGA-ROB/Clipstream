@@ -21,6 +21,14 @@ app.set("trust proxy", 1);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "img-src": ["'self'", "data:", "blob:", "https:"],
+        "media-src": ["'self'", "blob:", "https:"],
+        "connect-src": ["'self'", "https:"],
+      },
+    },
   })
 );
 
@@ -81,15 +89,24 @@ app.use("/api/follow", followRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/protected", protectedRoutes);
 
+const resolveFrontend = () => {
+  const candidates = [
+    path.join(__dirname, "client"),
+    path.join(process.cwd(), "client"),
+    path.join(__dirname, "public"),
+    path.join(process.cwd(), "public"),
+  ];
+  return candidates.find((dir) => fs.existsSync(path.join(dir, "index.html"))) || null;
+};
+
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
 
-const frontendDir = path.join(__dirname, "public");
-const frontendIndex = path.join(frontendDir, "index.html");
-const hasFrontend = fs.existsSync(frontendIndex);
+const frontendDir = resolveFrontend();
 
-if (hasFrontend) {
+if (frontendDir) {
+  const frontendIndex = path.join(frontendDir, "index.html");
   app.use(express.static(frontendDir));
   app.get("*", (req, res, next) => {
     if (
@@ -109,6 +126,7 @@ if (hasFrontend) {
       status: "ok",
       videos: "/api/videos",
       health: "/health",
+      ui: false,
     });
   });
 }

@@ -44,9 +44,11 @@ jobs:
 
       - name: Copy frontend build into API
         run: |
-          rm -rf chhavi-anvaya-backend/public
-          mkdir -p chhavi-anvaya-backend/public
-          cp -r chhavi-anvaya-frontend/build/* chhavi-anvaya-backend/public/
+          rm -rf chhavi-anvaya-backend/client
+          mkdir -p chhavi-anvaya-backend/client
+          cp -r chhavi-anvaya-frontend/build/* chhavi-anvaya-backend/client/
+          test -f chhavi-anvaya-backend/client/index.html
+          ls -la chhavi-anvaya-backend/client | head
 
       - name: Install API dependencies
         working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
@@ -57,9 +59,15 @@ jobs:
             npm install --omit=dev
           fi
 
+      - name: Zip package including the React client
+        run: |
+          cd chhavi-anvaya-backend
+          zip -r ../clipstream-api.zip . -x "*.git*"
+          unzip -l ../clipstream-api.zip | awk '/client\/index.html|server.js/ { print }'
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: clipstream-api.zip
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
