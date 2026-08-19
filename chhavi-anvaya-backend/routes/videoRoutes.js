@@ -1,6 +1,7 @@
 const express = require("express");
 const authenticateToken = require("../middleware/authenticateToken");
 const authorizeRole = require("../middleware/authorizeRole");
+const upload = require("../middleware/video_upload");
 const { ROLES } = require("../constants/catalog");
 const {
   listVideos,
@@ -21,6 +22,10 @@ router.post(
   "/",
   authenticateToken,
   authorizeRole(ROLES.CREATOR),
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
   createVideo
 );
 router.get("/:id", authenticateToken, getVideo);

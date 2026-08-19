@@ -1,35 +1,26 @@
-const dotenv = require("dotenv");
-const { sqlLogger } = require("./logger");
-dotenv.config();
+require('dotenv').config();
 
 module.exports = {
   development: {
-    username: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DATABASE,
-    host: process.env.PG_HOST,
-    dialect: "postgres",
-    port: process.env.PG_PORT,
-    logging: sqlLogger,
+    username: process.env.DB_USER,
+    password: String(process.env.DB_PASSWORD || ''),
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 5432,
+    dialect: 'postgres'
   },
-
-  test: {
-    username: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DATABASE,
-    host: process.env.PG_HOST,
-    dialect: "postgres",
-    port: process.env.PG_PORT,
-    logging: false,
-  },
-
   production: {
-    username: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DATABASE,
-    host: process.env.PG_HOST,
-    dialect: "postgres",
-    port: process.env.PG_PORT,
-    logging: false,
-  },
+    username: process.env.DB_USER,
+    password: String(process.env.DB_PASSWORD || ''),
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 5432,
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
 };

@@ -18,6 +18,7 @@ function Studio() {
     age_rating: "PG",
     description: "",
     video: null,
+    thumbnail: null,
   });
 
   const refresh = async () => {
@@ -33,7 +34,10 @@ function Studio() {
   }, []);
 
   const update = (field) => (event) => {
-    const value = field === "video" ? event.target.files[0] : event.target.value;
+    const value =
+      field === "video" || field === "thumbnail"
+        ? event.target.files[0]
+        : event.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -51,7 +55,13 @@ function Studio() {
     try {
       await uploadVideo(payload);
       toast.success("Clip published");
-      setForm((prev) => ({ ...prev, title: "", description: "", video: null }));
+      setForm((prev) => ({
+        ...prev,
+        title: "",
+        description: "",
+        video: null,
+        thumbnail: null,
+      }));
       await refresh();
     } catch (error) {
       toast.error(error.response?.data?.message || "Upload failed.");
@@ -111,6 +121,10 @@ function Studio() {
           <label>
             Video file
             <input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={update("video")} />
+          </label>
+          <label>
+            Thumbnail (optional)
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={update("thumbnail")} />
           </label>
           <button type="submit" disabled={submitting}>
             {submitting ? "Uploading..." : "Publish clip"}

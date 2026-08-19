@@ -16,18 +16,24 @@ jest.mock("../../../config/cache", () => ({
 }));
 
 jest.mock("../../../config/storage", () => ({
-  persistLocalFile: jest.fn(),
-  publicUrlFor: jest.fn(async (value) => `/media/${value}`),
-  storedRef: jest.fn((result) => result.key),
+  publicUrlFor: jest.fn(async (value) =>
+    String(value).startsWith("http") ? value : `/media/${value}`
+  ),
+}));
+
+jest.mock("../../../services/azureStorageService", () => ({
+  uploadBlob: jest.fn(),
+  deleteBlob: jest.fn(),
 }));
 
 jest.mock("../../../config/media", () => ({
   moderateMetadata: jest.fn(() => ({ status: "approved" })),
-  transcodeIfPossible: jest.fn(),
-}));
-
-jest.mock("../../../middleware/video_upload", () => ({
-  single: () => (req, res, cb) => cb(),
+  transcodeIfPossible: jest.fn(() => ({
+    outputPath: "/tmp/in.mp4",
+    thumbnailPath: null,
+    durationSeconds: null,
+    status: "skipped",
+  })),
 }));
 
 const { Video, Comment, Rating } = require("../../../models");

@@ -1,11 +1,23 @@
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 const { Op, fn, col } = require("sequelize");
 const { User, Video, Comment, Rating } = require("../models");
-const upload = require("../middleware/video_upload");
 const { GENRES, AGE_RATINGS } = require("../constants/catalog");
 const { cacheGet, cacheSet, cacheDelPrefix } = require("../config/cache");
-const { persistLocalFile, publicUrlFor, storedRef } = require("../config/storage");
+const { publicUrlFor } = require("../config/storage");
 const { moderateMetadata, transcodeIfPossible } = require("../config/media");
+const { uploadBlob } = require("../services/azureStorageService");
+
+const VIDEO_CONTAINER =
+  process.env.AZURE_STORAGE_CONTAINER_VIDEOS || "videos";
+const THUMBNAIL_CONTAINER =
+  process.env.AZURE_STORAGE_CONTAINER_THUMBNAILS || "thumbnails";
+
+const uniqueBlobName = (originalname) => {
+  const safe = path.basename(originalname || "upload").replace(/[^\w.\-]/g, "_");
+  return `${Date.now()}-${safe}`;
+};
 
 const getPagination = (query) => {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
@@ -168,78 +180,124 @@ const getMyVideos = async (req, res) => {
   }
 };
 
-const createVideo = (req, res) => {
-  upload.single("video")(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
+const createVideo = async (req, res) => {
+  const videoFile = req.files?.video?.[0] || req.file;
+  const thumbnailFile = req.files?.thumbnail?.[0];
+
+  const { title, publisher, producer, genre, age_rating, description } = req.body;
+  if (!title || !publisher || !producer || !genre || !age_rating || !videoFile) {
+    return res.status(400).json({
+      message:
+        "Title, publisher, producer, genre, age rating, and a video file are required.",
+    });
+  }
+
+  if (!GENRES.includes(genre) || !AGE_RATINGS.includes(age_rating)) {
+    return res.status(400).json({ message: "Invalid genre or age rating." });
+  }
+
+  const moderation = moderateMetadata({
+    title,
+    publisher,
+    producer,
+    description,
+  });
+  if (moderation.status === "flagged") {
+    return res.status(400).json({
+      message: "Video metadata failed content checks.",
+      reason: moderation.reason,
+    });
+  }
+
+  const tempFiles = [];
+  try {
+    let videoBuffer = videoFile.buffer;
+    let videoMimeType = videoFile.mimetype || "video/mp4";
+    let thumbnailBuffer = thumbnailFile?.buffer || null;
+    let thumbnailMimeType = thumbnailFile?.mimetype || "image/jpeg";
+    let durationSeconds = null;
+    let transcodeStatus = "skipped";
+
+    if (videoFile.buffer) {
+      const tempInput = path.join(os.tmpdir(), uniqueBlobName(videoFile.originalname));
+      fs.writeFileSync(tempInput, videoFile.buffer);
+      tempFiles.push(tempInput);
+
+      const media = transcodeIfPossible(tempInput);
+      transcodeStatus = media.status;
+      durationSeconds = media.durationSeconds;
+
+      if (media.outputPath && media.outputPath !== tempInput && fs.existsSync(media.outputPath)) {
+        videoBuffer = fs.readFileSync(media.outputPath);
+        videoMimeType = "video/mp4";
+        tempFiles.push(media.outputPath);
+      }
+
+      if (!thumbnailBuffer && media.thumbnailPath && fs.existsSync(media.thumbnailPath)) {
+        thumbnailBuffer = fs.readFileSync(media.thumbnailPath);
+        thumbnailMimeType = "image/jpeg";
+        tempFiles.push(media.thumbnailPath);
+      }
     }
 
-    const { title, publisher, producer, genre, age_rating, description } = req.body;
-    if (!title || !publisher || !producer || !genre || !age_rating || !req.file) {
-      return res.status(400).json({
-        message:
-          "Title, publisher, producer, genre, age rating, and a video file are required.",
-      });
+    const videoBlobName = uniqueBlobName(videoFile.originalname);
+    const videoUrl = await uploadBlob(
+      VIDEO_CONTAINER,
+      videoBlobName,
+      videoBuffer,
+      videoMimeType
+    );
+
+    let thumbnailUrl = null;
+    if (thumbnailBuffer) {
+      const thumbnailBlobName = uniqueBlobName(
+        thumbnailFile?.originalname || `${path.parse(videoBlobName).name}-thumb.jpg`
+      );
+      thumbnailUrl = await uploadBlob(
+        THUMBNAIL_CONTAINER,
+        thumbnailBlobName,
+        thumbnailBuffer,
+        thumbnailMimeType
+      );
     }
 
-    if (!GENRES.includes(genre) || !AGE_RATINGS.includes(age_rating)) {
-      return res.status(400).json({ message: "Invalid genre or age rating." });
-    }
-
-    const moderation = moderateMetadata({
+    const video = await Video.create({
+      user_id: req.user.id,
       title,
       publisher,
       producer,
-      description,
+      genre,
+      age_rating,
+      description: description || null,
+      video_url: videoUrl,
+      original_url: videoBlobName,
+      thumbnail_url: thumbnailUrl,
+      duration_seconds: durationSeconds,
+      transcode_status: transcodeStatus,
+      moderation_status: "approved",
     });
-    if (moderation.status === "flagged") {
-      return res.status(400).json({
-        message: "Video metadata failed content checks.",
-        reason: moderation.reason,
-      });
-    }
 
-    try {
-      const originalPath = req.file.path;
-      const media = transcodeIfPossible(originalPath);
-      const playbackName = path.basename(media.outputPath);
-      const stored = await persistLocalFile(media.outputPath, playbackName);
-
-      let thumbnailRef = null;
-      if (media.thumbnailPath) {
-        const thumbName = path.basename(media.thumbnailPath);
-        const thumbStored = await persistLocalFile(media.thumbnailPath, thumbName);
-        thumbnailRef = storedRef(thumbStored);
+    await cacheDelPrefix("videos:list:");
+    const payload = await withPlaybackUrls(video);
+    return res.status(201).json({
+      success: true,
+      message: "Video uploaded successfully",
+      video: payload,
+      videoUrl,
+      thumbnailUrl,
+    });
+  } catch (error) {
+    console.error("Blob upload error:", error);
+    return res.status(500).json({ message: "Failed to upload video" });
+  } finally {
+    tempFiles.forEach((filePath) => {
+      try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch {
+        // ignore cleanup errors
       }
-
-      const video = await Video.create({
-        user_id: req.user.id,
-        title,
-        publisher,
-        producer,
-        genre,
-        age_rating,
-        description: description || null,
-        video_url: storedRef(stored),
-        original_url: path.basename(originalPath),
-        thumbnail_url: thumbnailRef,
-        duration_seconds: media.durationSeconds,
-        transcode_status: media.status,
-        moderation_status: "approved",
-      });
-
-      await cacheDelPrefix("videos:list:");
-      const payload = await withPlaybackUrls(video);
-      return res.status(201).json({
-        success: true,
-        message: "Video uploaded successfully",
-        video: payload,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Error uploading video" });
-    }
-  });
+    });
+  }
 };
 
 const addComment = async (req, res) => {
