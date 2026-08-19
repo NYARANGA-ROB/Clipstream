@@ -1,4 +1,5 @@
 const express = require("express");
+const router = express.Router();
 const authenticateToken = require("../middleware/authenticateToken");
 const authorizeRole = require("../middleware/authorizeRole");
 const upload = require("../middleware/video_upload");
@@ -11,13 +12,16 @@ const {
   createVideo,
   addComment,
   rateVideo,
+  deleteVideo,
 } = require("../controllers/videoController");
 
-const router = express.Router();
-
+// PUBLIC: anyone can fetch the catalog, feed, and play a clip
 router.get("/catalog", getCatalog);
-router.get("/", authenticateToken, listVideos);
+router.get("/", listVideos);
 router.get("/mine", authenticateToken, authorizeRole(ROLES.CREATOR), getMyVideos);
+router.get("/:id", getVideo);
+
+// PROTECTED: valid JWT + creator role required to upload or delete
 router.post(
   "/",
   authenticateToken,
@@ -28,7 +32,14 @@ router.post(
   ]),
   createVideo
 );
-router.get("/:id", authenticateToken, getVideo);
+
+router.delete(
+  "/:id",
+  authenticateToken,
+  authorizeRole(ROLES.CREATOR),
+  deleteVideo
+);
+
 router.post("/:id/comments", authenticateToken, addComment);
 router.put("/:id/rating", authenticateToken, rateVideo);
 

@@ -9,13 +9,25 @@ describe("Video platform routes", () => {
     expect(res.body.age_ratings).toContain("PG");
   });
 
-  test("GET /api/videos requires auth", async () => {
+  test("GET /api/videos is public", async () => {
     const res = await request(app).get("/api/videos");
-    expect(res.statusCode).toBe(401);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("videos");
+  });
+
+  test("GET /api/videos/:id is public", async () => {
+    const res = await request(app).get("/api/videos/1");
+    expect([200, 404, 500]).toContain(res.statusCode);
+    expect(res.statusCode).not.toBe(401);
   });
 
   test("POST /api/videos requires auth", async () => {
     const res = await request(app).post("/api/videos");
+    expect(res.statusCode).toBe(401);
+  });
+
+  test("DELETE /api/videos/:id requires auth", async () => {
+    const res = await request(app).delete("/api/videos/1");
     expect(res.statusCode).toBe(401);
   });
 

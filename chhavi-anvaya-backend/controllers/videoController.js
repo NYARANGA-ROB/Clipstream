@@ -7,7 +7,7 @@ const { GENRES, AGE_RATINGS } = require("../constants/catalog");
 const { cacheGet, cacheSet, cacheDelPrefix } = require("../config/cache");
 const { publicUrlFor } = require("../config/storage");
 const { moderateMetadata, transcodeIfPossible } = require("../config/media");
-const { uploadBlob } = require("../services/azureStorageService");
+const { uploadBlob, deleteBlob } = require("../services/azureStorageService");
 
 const VIDEO_CONTAINER =
   process.env.AZURE_STORAGE_CONTAINER_VIDEOS || "videos";
@@ -372,6 +372,51 @@ const rateVideo = async (req, res) => {
   }
 };
 
+const blobRefFromUrl = (url) => {
+  if (!url || !String(url).startsWith("http")) return null;
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.replace(/^\//, "").split("/");
+    const containerName = decodeURIComponent(parts.shift() || "");
+    const blobName = decodeURIComponent(parts.join("/"));
+    if (!containerName || !blobName) return null;
+    return { containerName, blobName };
+  } catch {
+    return null;
+  }
+};
+
+const deleteVideo = async (req, res) => {
+  try {
+    const video = await Video.findByPk(req.params.id);
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+    if (video.user_id !== req.user.id) {
+      return res.status(403).json({
+        message: "You can only delete videos you uploaded.",
+      });
+    }
+
+    const blobs = [blobRefFromUrl(video.video_url), blobRefFromUrl(video.thumbnail_url)];
+    for (const blob of blobs) {
+      if (!blob) continue;
+      try {
+        await deleteBlob(blob.containerName, blob.blobName);
+      } catch (error) {
+        console.error("Blob delete error:", error.message);
+      }
+    }
+
+    await video.destroy();
+    await cacheDelPrefix("videos:list:");
+    return res.status(200).json({ success: true, message: "Video deleted" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to delete video" });
+  }
+};
+
 module.exports = {
   listVideos,
   getCatalog,
@@ -380,4 +425,5 @@ module.exports = {
   createVideo,
   addComment,
   rateVideo,
+  deleteVideo,
 };
