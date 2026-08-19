@@ -16,7 +16,7 @@ const authenticateToken = (req, res, next) => {
 
     User.findOne({
       where: { id: userId },
-      attributes: { exclude: ["password"] },
+      attributes: ["id", "email", "username", "name", "role", "profile_url"],
     })
       .then((user) => {
         if (!user) {

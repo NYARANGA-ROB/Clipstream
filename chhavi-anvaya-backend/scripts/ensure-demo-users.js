@@ -1,6 +1,6 @@
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const { User } = require("../models");
+const { sequelize, User } = require("../models");
 const { ROLES } = require("../constants/catalog");
 
 const DEMO_USERS = [
@@ -20,9 +20,23 @@ const DEMO_USERS = [
   },
 ];
 
+const ensureSchema = async () => {
+  await sequelize.query(
+    `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "bio" VARCHAR(255);`
+  );
+  await sequelize.query(
+    `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "role" VARCHAR(255) DEFAULT 'consumer';`
+  );
+};
+
 const ensureDemoUsers = async () => {
+  await ensureSchema();
+
   for (const demo of DEMO_USERS) {
-    const existing = await User.findOne({ where: { email: demo.email } });
+    const existing = await User.findOne({
+      where: { email: demo.email },
+      attributes: ["id"],
+    });
     if (existing) continue;
 
     await User.create(
@@ -32,7 +46,6 @@ const ensureDemoUsers = async () => {
         name: demo.name,
         password: await bcrypt.hash(demo.password, 10),
         role: demo.role,
-        verification: true,
       },
       { validate: false }
     );

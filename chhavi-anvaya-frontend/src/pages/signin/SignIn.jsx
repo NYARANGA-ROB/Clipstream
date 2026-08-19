@@ -9,7 +9,7 @@ import Loader from "../../components/Loader/Loader";
 import styles from "./SignIn.module.css";
 
 const validationSchema = Yup.object({
-  email: Yup.string().email("Invalid email address").required("Email is required"),
+  email: Yup.string().required("Email is required"),
   password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
 });
 
@@ -45,8 +45,9 @@ function SignIn() {
         <h1>Drop in and watch</h1>
         <form onSubmit={formik.handleSubmit}>
           <input
-            type="email"
+            type="text"
             name="email"
+            autoComplete="username"
             placeholder="Email"
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}

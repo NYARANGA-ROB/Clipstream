@@ -70,7 +70,10 @@ const signIn = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      attributes: ["id", "email", "username", "name", "password", "role"],
+    });
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
@@ -85,12 +88,16 @@ const signIn = async (req, res) => {
 
     const token = generateJwtToken(user);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 8 * 3600000,
-    });
+    try {
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 8 * 3600000,
+      });
+    } catch (cookieError) {
+      console.error("Could not set auth cookie:", cookieError.message);
+    }
 
     return res.status(200).json({
       success: true,
