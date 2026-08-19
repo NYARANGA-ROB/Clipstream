@@ -26,19 +26,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: chhavi-anvaya-backend/package-lock.json
 
       - name: Install dependencies
-        working-directory: chhavi-anvaya-backend
-        run: npm ci
+        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Build application
-        working-directory: chhavi-anvaya-backend
+        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
         run: npm run build --if-present
 
       - name: Test application
-        working-directory: chhavi-anvaya-backend
+        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
         run: npm test --if-present
 
       - name: Deploy to Azure Web App
