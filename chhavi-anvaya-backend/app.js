@@ -24,9 +24,9 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "img-src": ["'self'", "data:", "blob:", "https:"],
-        "media-src": ["'self'", "blob:", "https:"],
-        "connect-src": ["'self'", "https:"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        mediaSrc: ["'self'", "blob:", "https:"],
+        connectSrc: ["'self'", "https:"],
       },
     },
   })
