@@ -1,10 +1,14 @@
 const app = require("./app");
 const { log } = require("./config/logger");
+const { ensureDemoUsers } = require("./scripts/ensure-demo-users");
 
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
   log.serverStart(PORT);
+  ensureDemoUsers().catch((error) => {
+    console.error("Could not ensure demo users:", error.message);
+  });
 });
 
 const shutdown = () => {

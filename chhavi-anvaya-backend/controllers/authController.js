@@ -78,6 +78,11 @@ const signIn = async (req, res) => {
     if (!isValidPassword)
       return res.status(400).json({ message: "Invalid credentials" });
 
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not configured");
+      return res.status(500).json({ message: "Auth is not configured" });
+    }
+
     const token = generateJwtToken(user);
 
     res.cookie("token", token, {

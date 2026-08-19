@@ -50,18 +50,36 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const allowedOrigins = () => {
+  const origins = (process.env.CLIENT_URL || "http://localhost:3000")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (process.env.WEBSITE_HOSTNAME) {
+    origins.push(`https://${process.env.WEBSITE_HOSTNAME}`);
+  }
+  return origins;
+};
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  const allowed = allowedOrigins();
+  if (allowed.includes("*") || allowed.includes(origin)) return true;
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname.endsWith(".azurewebsites.net") ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
+};
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowed = (process.env.CLIENT_URL || "http://localhost:3000")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean);
-      if (!origin || allowed.includes("*") || allowed.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
