@@ -30,4 +30,11 @@ describe("Auth Routes", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("status", "ok");
   });
+
+  test("GET / describes the API", async () => {
+    const res = await request(app).get("/");
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("name", "Clipstream API");
+    expect(res.body.videos).toBe("/api/videos");
+  });
 });

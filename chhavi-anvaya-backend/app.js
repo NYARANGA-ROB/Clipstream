@@ -42,7 +42,16 @@ const authLimiter = rateLimit({
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      const allowed = (process.env.CLIENT_URL || "http://localhost:3000")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (!origin || allowed.includes("*") || allowed.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -69,6 +78,15 @@ app.use("/api/posts", postRoutes);
 app.use("/api/follow", followRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/protected", protectedRoutes);
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    name: "Clipstream API",
+    status: "ok",
+    videos: "/api/videos",
+    health: "/health",
+  });
+});
 
 // Health check
 app.get("/health", (req, res) => {
