@@ -8,7 +8,6 @@ import Homepage from "./pages/home/Home";
 import Explore from "./pages/explore/Explore";
 import Watch from "./pages/watch/Watch";
 import Studio from "./pages/studio/Studio";
-import ProtectedRoute from "./components/ProtectedRoute";
 import CreatorRoute from "./components/CreatorRoute";
 
 function App() {
@@ -23,39 +22,20 @@ function App() {
 
 function Main() {
   const location = useLocation();
-  const isAuthPage = location.pathname === "/signUp" || location.pathname === "/";
+  const isAuthPage =
+    location.pathname === "/signUp" || location.pathname === "/signIn";
 
   return (
     <div className={`app-container ${isAuthPage ? "auth-page" : ""}`}>
       {!isAuthPage && <Navigation />}
       <div className={`content ${isAuthPage ? "full-width" : ""}`}>
         <Routes>
-          <Route index element={<SignIn />} />
+          <Route index element={<Homepage />} />
+          <Route path="signIn" element={<SignIn />} />
           <Route path="signUp" element={<SignUp />} />
-          <Route
-            path="homepage"
-            element={
-              <ProtectedRoute>
-                <Homepage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="explore"
-            element={
-              <ProtectedRoute>
-                <Explore />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="watch/:id"
-            element={
-              <ProtectedRoute>
-                <Watch />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="homepage" element={<Homepage />} />
+          <Route path="explore" element={<Explore />} />
+          <Route path="watch/:id" element={<Watch />} />
           <Route
             path="studio"
             element={
@@ -64,7 +44,7 @@ function Main() {
               </CreatorRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/homepage" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </div>

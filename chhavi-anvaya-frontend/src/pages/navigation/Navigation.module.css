@@ -86,6 +86,15 @@
   background: #2a2a38;
 }
 
+.signInLink {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .sideNavBar {
     inset: auto 0 0 0;

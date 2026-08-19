@@ -12,8 +12,10 @@ const postRoutes = require("./routes/postRoutes");
 const followRoutes = require("./routes/followRoutes");
 const videoRoutes = require("./routes/videoRoutes");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Security headers
 app.use(
@@ -79,19 +81,37 @@ app.use("/api/follow", followRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/protected", protectedRoutes);
 
-app.get("/", (_req, res) => {
-  res.status(200).json({
-    name: "Clipstream API",
-    status: "ok",
-    videos: "/api/videos",
-    health: "/health",
-  });
-});
-
-// Health check
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
+
+const frontendDir = path.join(__dirname, "public");
+const frontendIndex = path.join(frontendDir, "index.html");
+const hasFrontend = fs.existsSync(frontendIndex);
+
+if (hasFrontend) {
+  app.use(express.static(frontendDir));
+  app.get("*", (req, res, next) => {
+    if (
+      req.path.startsWith("/api") ||
+      req.path.startsWith("/health") ||
+      req.path.startsWith("/media") ||
+      req.path.startsWith("/images")
+    ) {
+      return next();
+    }
+    res.sendFile(frontendIndex);
+  });
+} else {
+  app.get("/", (_req, res) => {
+    res.status(200).json({
+      name: "Clipstream API",
+      status: "ok",
+      videos: "/api/videos",
+      health: "/health",
+    });
+  });
+}
 
 // Centralized error handler
 app.use((err, req, res, next) => {

@@ -25,7 +25,7 @@ function SignIn() {
         const response = await signIn(values);
         if (response.success) {
           setAuthUser(response.user);
-          navigate("/homepage", { replace: true });
+          navigate("/", { replace: true });
         } else {
           toast.error(response.message);
         }
@@ -36,7 +36,7 @@ function SignIn() {
   });
 
   if (loading) return <Loader />;
-  if (user) return <Navigate to="/homepage" replace />;
+  if (user) return <Navigate to="/" replace />;
 
   return (
     <div className={styles.page}>
@@ -74,7 +74,7 @@ function SignIn() {
           New viewer? <Link to="/signUp">Create a consumer account</Link>
         </p>
         <p className={styles.hint}>
-          Creator accounts are enrolled privately by operators — there is no public creator signup.
+          Or <Link to="/">browse the feed</Link> without signing in. Creator accounts are enrolled privately.
         </p>
       </div>
     </div>

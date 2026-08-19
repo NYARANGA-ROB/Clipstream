@@ -75,7 +75,7 @@ function SignUp() {
           </button>
         </form>
         <p className={styles.redirect}>
-          Already have an account? <Link to="/">Sign in</Link>
+          Already have an account? <Link to="/signIn">Sign in</Link>
         </p>
       </div>
     </div>

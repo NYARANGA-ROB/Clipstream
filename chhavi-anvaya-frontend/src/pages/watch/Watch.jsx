@@ -31,6 +31,10 @@ function Watch() {
   }, [id]);
 
   const handleRate = async (score) => {
+    if (!user) {
+      toast.info("Sign in to rate this clip.");
+      return;
+    }
     try {
       const response = await rateVideo(id, score);
       setVideo((prev) => ({
@@ -47,6 +51,10 @@ function Watch() {
   const handleComment = async (event) => {
     event.preventDefault();
     if (!comment.trim()) return;
+    if (!user) {
+      toast.info("Sign in to comment.");
+      return;
+    }
     try {
       await commentOnVideo(id, comment);
       setComment("");
@@ -107,7 +115,7 @@ function Watch() {
           <h3>Comments</h3>
           <textarea
             rows="3"
-            placeholder={`Comment as ${user?.username}`}
+            placeholder={user ? `Comment as ${user.username}` : "Sign in to comment"}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />

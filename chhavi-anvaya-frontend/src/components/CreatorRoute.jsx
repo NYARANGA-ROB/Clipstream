@@ -6,8 +6,8 @@ import Loader from "./Loader/Loader";
 const CreatorRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return <Loader />;
-  if (!user) return <Navigate to="/" replace />;
-  if (user.role !== "creator") return <Navigate to="/homepage" replace />;
+  if (!user) return <Navigate to="/signIn" replace />;
+  if (user.role !== "creator") return <Navigate to="/" replace />;
   return children;
 };
 

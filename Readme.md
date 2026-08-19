@@ -24,6 +24,15 @@ npm install
 npm start             # http://localhost:3000
 ```
 
+## Azure
+
+The React app is built in GitHub Actions and served from the same App Service as the API, so the website and `/api` share one origin.
+
+Site: https://clipstream-api-2026-hgfrfpd6cbcpc8bh.germanywestcentral-01.azurewebsites.net  
+API: https://clipstream-api-2026-hgfrfpd6cbcpc8bh.germanywestcentral-01.azurewebsites.net/api/videos
+
+Push to `main` to deploy. After the workflow finishes, open the site URL (not only `/api`).
+
 Full stack behind nginx (static hosting + API routing):
 
 ```bash

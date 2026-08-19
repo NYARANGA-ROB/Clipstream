@@ -6,6 +6,7 @@ import {
   faMagnifyingGlass,
   faClapperboard,
   faRightFromBracket,
+  faRightToBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import { AuthContext } from "../../context/AuthContext";
 import styles from "./Navigation.module.css";
@@ -29,7 +30,7 @@ function Navigation() {
         </div>
       </div>
       <nav>
-        <NavLink to="/homepage" className={({ isActive }) => (isActive ? styles.active : "")}>
+        <NavLink to="/" className={({ isActive }) => (isActive ? styles.active : "")}>
           <FontAwesomeIcon icon={faHouse} />
           For You
         </NavLink>
@@ -45,13 +46,22 @@ function Navigation() {
         )}
       </nav>
       <div className={styles.account}>
-        <div>
-          <strong>{user?.username}</strong>
-          <span>{user?.role === "creator" ? "Creator" : "Viewer"}</span>
-        </div>
-        <button type="button" onClick={handleSignOut} aria-label="Sign out">
-          <FontAwesomeIcon icon={faRightFromBracket} />
-        </button>
+        {user ? (
+          <>
+            <div>
+              <strong>{user.username}</strong>
+              <span>{user.role === "creator" ? "Creator" : "Viewer"}</span>
+            </div>
+            <button type="button" onClick={handleSignOut} aria-label="Sign out">
+              <FontAwesomeIcon icon={faRightFromBracket} />
+            </button>
+          </>
+        ) : (
+          <NavLink to="/signIn" className={styles.signInLink}>
+            <FontAwesomeIcon icon={faRightToBracket} />
+            Sign in
+          </NavLink>
+        )}
       </div>
     </aside>
   );
